@@ -1,7 +1,7 @@
 #ifndef CGI_TEST_H
 #define CGI_TEST_H
 
-#include "httpd.h"
+#include "libesphttpd/httpd.h"
 
 int cgiTestbed(HttpdConnData *connData);
 

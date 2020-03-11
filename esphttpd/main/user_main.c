@@ -13,24 +13,26 @@ the server, including WiFi connection management capabilities, some IO and
 some pictures of cats.
 */
 
-#include <esp8266.h>
-#include "httpd.h"
+#include "esp8266/esp8266.h"
+#include "libesphttpd/httpd.h"
 #include "io.h"
-#include "httpdespfs.h"
+#include "libesphttpd/httpdespfs.h"
 #include "cgi.h"
-#include "cgiwifi.h"
-#include "cgiflash.h"
-#include "auth.h"
-#include "espfs.h"
-#include "captdns.h"
-#include "webpages-espfs.h"
-#include "cgiwebsocket.h"
+#include "libesphttpd/cgiwifi.h"
+#include "libesphttpd/cgiflash.h"
+#include "libesphttpd/auth.h"
+#include "libesphttpd/espfs.h"
+#include "libesphttpd/captdns.h"
+#include "libesphttpd/webpages-espfs.h"
+#include "libesphttpd/cgiwebsocket.h"
 #include "cgi-test.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
 #include "freertos/queue.h"
+#include "esp_wifi.h"
+#include "driver/uart.h"
 
 
 //Function that tells the authentication system what users/passwords live on the system.
@@ -93,6 +95,7 @@ void myEchoWebsocketConnect(Websock *ws) {
 	ws->recvCb=myEchoWebsocketRecv;
 }
 
+#ifdef FIXED_UPLOAD
 CgiUploadFlashDef uploadParams={
 	.type=CGIFLASH_TYPE_FW,
 	.fw1Pos=0x1000,
@@ -100,6 +103,7 @@ CgiUploadFlashDef uploadParams={
 	.fwSize=((OTA_FLASH_SIZE_K*1024)/2)-0x1000,
 	.tagName=OTA_TAGNAME
 };
+#endif // FIXED_UPLOAD
 
 
 /*
@@ -120,8 +124,10 @@ HttpdBuiltInUrl builtInUrls[]={
 	{"/led.cgi", cgiLed, NULL},
 #ifndef ESP32
 	{"/flash/", cgiRedirect, "/flash/index.html"},
+#ifdef FIXED_UPLOAD
 	{"/flash/next", cgiGetFirmwareNext, &uploadParams},
 	{"/flash/upload", cgiUploadFirmware, &uploadParams},
+#endif // FIXED_UPLOAD
 	{"/flash/reboot", cgiRebootFirmware, NULL},
 #endif
 	//Routines to make the /wifi URL and everything beneath it work.
@@ -176,9 +182,12 @@ void ICACHE_FLASH_ATTR tskconnect(void *pvParameters) {
 #endif
 
 //Main routine. Initialize stdout, the I/O, filesystem and the webserver and we're done.
-void user_init(void) {
+void app_main(void) {
 #ifndef ESP32
-	uart_div_modify(0, UART_CLK_FREQ / 115200);
+	uart_set_baudrate(0, 115200);
+
+        wifi_init_config_t config;
+        esp_wifi_init(&config);
 #else
 	xTaskCreate(tskconnect, "tskconnect", 200, NULL, 3, NULL);
 #endif

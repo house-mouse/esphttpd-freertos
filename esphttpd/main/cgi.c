@@ -13,7 +13,7 @@ flash as a binary. Also handles the hit counter on the main page.
  */
 
 
-#include <esp8266.h>
+#include "esp8266/esp8266.h"
 #include "cgi.h"
 #include "io.h"
 

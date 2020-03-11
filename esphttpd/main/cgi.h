@@ -1,7 +1,7 @@
 #ifndef CGI_H
 #define CGI_H
 
-#include "httpd.h"
+#include "libesphttpd/httpd.h"
 
 int cgiLed(HttpdConnData *connData);
 int tplLed(HttpdConnData *connData, char *token, void **arg);

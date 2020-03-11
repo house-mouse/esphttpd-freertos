@@ -12,7 +12,7 @@ Cgi routines as used by the tests in the html/test subdirectory.
  */
 
 
-#include <esp8266.h>
+#include "esp8266/esp8266.h"
 #include "cgi-test.h"
 
 
@@ -37,7 +37,7 @@ int ICACHE_FLASH_ATTR cgiTestbed(HttpdConnData *connData) {
 	if (state==NULL) {
 		//First call
 		state=malloc(sizeof(TestbedState));
-		memset(state, 0, sizeof(state));
+		memset(state, 0, sizeof(TestbedState));
 		connData->cgiData=state;
 		first=1;
 	}
